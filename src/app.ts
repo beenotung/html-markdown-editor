@@ -7,6 +7,7 @@ import { toText as toMarkdown } from 'very-small-parser/lib/markdown/block/toTex
 let statusNode = querySelector('#status')
 let markdownEditor = querySelector<HTMLTextAreaElement>('#markdownEditor')
 let htmlEditor = querySelector('#htmlEditor')
+let clearFormatBtn = querySelector<HTMLButtonElement>('#clearFormatBtn')
 
 function markdown_to_html(markdown_text: string) {
   let markdown_ast = markdown.block.parse(markdown_text)
@@ -22,11 +23,11 @@ function html_to_markdown(html_text: string) {
   return markdown
 }
 
-markdownEditor.oninput = () => {
+markdownEditor.oninput = event => {
   let html_text = markdown_to_html(markdownEditor.value)
   htmlEditor.innerHTML = html_text
 }
-htmlEditor.oninput = () => {
+htmlEditor.oninput = event => {
   let markdown_text = html_to_markdown(htmlEditor.innerHTML)
 
   let lines = markdown_text.split('\n')
@@ -44,8 +45,27 @@ htmlEditor.oninput = () => {
   })
   markdownEditor.value = lines.join('\n')
   if (changed) {
-    htmlEditor.innerHTML = markdown_to_html(markdownEditor.value)
+    markdownEditor.oninput?.(event)
   }
+}
+
+clearFormatBtn.onclick = event => {
+  htmlEditor.querySelectorAll('*').forEach(node => {
+    node.removeAttribute('style')
+    node.removeAttribute('class')
+    node.removeAttribute('id')
+  })
+  htmlEditor.querySelectorAll('span').forEach(span => {
+    if (!span.innerText) {
+      span.remove()
+      return
+    }
+    if (span.childNodes.length != 1) return
+    let text = span.childNodes[0]
+    if (!(text instanceof Text)) return
+    span.outerHTML = span.innerHTML
+  })
+  htmlEditor.oninput?.(event)
 }
 
 function calcSize() {

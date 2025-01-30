@@ -54,7 +54,7 @@
         content: attr(placeholder);
         color: rgba(0, 0, 0, 0.5);
       }
-      #showHintBtn {
+      i[role='button'] {
         font-size: 0.75rem;
         padding: 0.25rem;
         outline: 1px solid black;
@@ -113,9 +113,15 @@
         <div class="editor-container">
           <h2>
             HTML Content
-            <i role="button" id="showHintBtn" onclick="hintDialog.show()">
+            <i
+              role="button"
+              id="showHintBtn"
+              onclick="hintDialog.show()"
+              title="Show Keyboard Shortcuts"
+            >
               ?
             </i>
+            <i role="button" id="clearFormatBtn" title="Clear Format">F</i>
           </h2>
           <div
             id="htmlEditor"
