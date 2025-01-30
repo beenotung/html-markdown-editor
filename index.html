@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>HTML Markdown Editor</title>
+    <style>
+      body {
+        font-family: Arial, Helvetica, sans-serif;
+        margin: 0;
+        background-color: bisque;
+      }
+      #app {
+        display: flex;
+        flex-direction: column;
+        padding: 0.5rem;
+        height: calc(100dvh - 1rem);
+      }
+      h1 {
+        margin: 0;
+      }
+      h2 {
+        margin-top: 0;
+        margin-bottom: 0.5rem;
+      }
+      #status {
+        margin: 0.5rem;
+      }
+      #container {
+        flex-grow: 1;
+        display: flex;
+        gap: 0.5rem;
+      }
+      .editor-container {
+        flex-grow: 1;
+        border-radius: 0.5rem;
+        display: flex;
+        flex-direction: column;
+        max-width: calc((100dvw - 0.5rem) / 2);
+      }
+      .editor {
+        border-radius: 0.5rem;
+        padding: 0.5rem;
+        background-color: snow;
+        width: calc(100% - 1rem);
+        flex-grow: 1;
+        border: none;
+        outline: 1px solid rgba(0, 0, 0, 0.1);
+        max-height: calc(100dvh - 1rem);
+        overflow: auto;
+      }
+      textarea::placeholder,
+      [placeholder]:empty::before {
+        content: attr(placeholder);
+        color: rgba(0, 0, 0, 0.5);
+      }
+      #showHintBtn {
+        font-size: 0.75rem;
+        padding: 0.25rem;
+        outline: 1px solid black;
+        border-radius: 50%;
+        width: 0.5rem;
+        height: 0.5rem;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+      }
+      #hintDialog dt {
+        margin-top: 1rem;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="app">
+      <h1>HTML Markdown Editor</h1>
+      <p id="status">Loading...</p>
+      <div id="container">
+        <div class="editor-container">
+          <h2>Markdown Content</h2>
+          <textarea
+            id="markdownEditor"
+            class="editor"
+            placeholder="paste markdown here"
+          ></textarea>
+        </div>
+        <dialog id="hintDialog">
+          <button onclick="hintDialog.close()">Close</button>
+          <dl>
+            <dt>Bold</dt>
+            <dd><kbd>Ctrl</kbd> + <kbd>B</kbd></dd>
+            <dt>Italic</dt>
+            <dd><kbd>Ctrl</kbd> + <kbd>I</kbd></dd>
+            <dt>Underline</dt>
+            <dd><kbd>Ctrl</kbd> + <kbd>U</kbd></dd>
+            <dt>Strikethrough</dt>
+            <dd><kbd>Ctrl</kbd> + <kbd>S</kbd></dd>
+            <dt>Ordered List</dt>
+            <dd><kbd>Ctrl</kbd> + <kbd>K</kbd></dd>
+            <dt>Unordered List</dt>
+            <dd><kbd>Ctrl</kbd> + <kbd>O</kbd></dd>
+          </dl>
+        </dialog>
+        <div class="editor-container">
+          <h2>
+            HTML Content
+            <i role="button" id="showHintBtn" onclick="hintDialog.show()">
+              ?
+            </i>
+          </h2>
+          <div
+            id="htmlEditor"
+            contenteditable
+            class="editor"
+            placeholder="paste html here"
+          ></div>
+        </div>
+      </div>
+    </div>
+    <script src="dist/bundle.js"></script>
+  </body>
+</html>
