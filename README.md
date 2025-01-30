@@ -4,6 +4,12 @@ Convert between html and markdown for LLM assisted workflow.
 
 Hosted on https://html-markdown-editor.surge.sh
 
+## Use Cases
+
+- Convert messages from web-based LLM chatrooms (e.g. Poe, Perplexity, ChatGPT) into plaintext text for further processing
+- Convert markdown into HTML for documents (e.g. Word, Google Docs, Google Slides)
+- Clean up copied content from Google Docs into clear html or markdown.
+
 ## Features
 
 - Convert html to markdown
