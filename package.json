@@ -9,7 +9,17 @@
     "tsc": "tsc -p .",
     "dev": "npm run build -- --watch"
   },
-  "keywords": [],
+  "keywords": [
+    "html",
+    "markdown",
+    "editor",
+    "llm",
+    "markdown-editor",
+    "html-editor",
+    "markdown-to-html",
+    "html-to-markdown",
+    "web-ui"
+  ],
   "author": {
     "name": "Beeno Tung",
     "email": "aabbcc1241@yahoo.com.hk",
