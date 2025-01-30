@@ -1,5 +1,5 @@
 {
-  "name": "html-md",
+  "name": "html-markdown-editor",
   "version": "0.0.0",
   "main": "dist/index.js",
   "scripts": {
