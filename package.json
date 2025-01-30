@@ -3,6 +3,7 @@
   "version": "0.0.0",
   "main": "dist/index.js",
   "scripts": {
+    "prepublishOnly": "rimraf dist/tsconfig.tsbuildinfo",
     "test": "tsc --noEmit",
     "clean": "rimraf dist",
     "build": "esbuild --bundle src/app.ts --outfile=dist/bundle.js",
