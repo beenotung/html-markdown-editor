@@ -6,11 +6,12 @@ Hosted on https://html-markdown-editor.surge.sh
 
 ## Features
 
-- Convert between html and markdown
+- Convert html to markdown
+- Convert markdown to html
 - Web based editor
+- Support keyboard shortcuts
 - No need to install anything
 - No need to signup or login
-- Support keyboard shortcuts
 
 ## License
 
