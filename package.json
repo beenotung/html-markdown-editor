@@ -10,8 +10,12 @@
     "dev": "npm run build -- --watch"
   },
   "keywords": [],
-  "author": "",
-  "license": "ISC",
+  "author": {
+    "name": "Beeno Tung",
+    "email": "aabbcc1241@yahoo.com.hk",
+    "url": "https://beeno-tung.surge.sh"
+  },
+  "license": "BSD-2-Clause",
   "type": "commonjs",
   "description": "",
   "devDependencies": {
