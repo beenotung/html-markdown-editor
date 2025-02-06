@@ -65,6 +65,9 @@ clearFormatBtn.onclick = event => {
     if (!(text instanceof Text)) return
     span.outerHTML = span.innerHTML
   })
+  htmlEditor.querySelectorAll('b,i,u,s').forEach(node => {
+    node.outerHTML = node.innerHTML
+  })
   htmlEditor.oninput?.(event)
 }
 
