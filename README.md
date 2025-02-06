@@ -19,6 +19,10 @@ Hosted on https://html-markdown-editor.surge.sh
 - No need to install anything
 - No need to signup or login
 
+## Todo
+
+- [ ] simplify generated markdown from nested list items in html
+
 ## License
 
 This project is licensed with [BSD-2-Clause](./LICENSE)
