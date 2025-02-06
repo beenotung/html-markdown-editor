@@ -28,15 +28,19 @@ markdownEditor.oninput = event => {
   htmlEditor.innerHTML = html_text
 }
 htmlEditor.oninput = event => {
+  // remove extra <br> tags in list items
   htmlEditor.querySelectorAll('li br').forEach(br => {
     let li = br.parentElement!
     if (br == li.childNodes[li.childNodes.length - 1]) {
       br.remove()
     }
   })
+
   let markdown_text = html_to_markdown(htmlEditor.innerHTML)
 
   let lines = markdown_text.split('\n')
+
+  // remove heading tags with span tags
   let changed = false
   lines.forEach((line, index) => {
     // e.g. `### <span style="font-weight: normal;">Phase 1: Core Features</span>`
@@ -49,6 +53,7 @@ htmlEditor.oninput = event => {
     lines[index] = `${heading} ${title}`
     changed = true
   })
+
   markdownEditor.value = lines.join('\n')
   if (changed) {
     markdownEditor.oninput?.(event)
@@ -56,11 +61,14 @@ htmlEditor.oninput = event => {
 }
 
 clearFormatBtn.onclick = event => {
+  // remove styling attributes
   htmlEditor.querySelectorAll('*').forEach(node => {
     node.removeAttribute('style')
     node.removeAttribute('class')
     node.removeAttribute('id')
   })
+
+  // remove empty elements
   htmlEditor.querySelectorAll<HTMLElement>('span,p').forEach(node => {
     if (!node.innerText) {
       node.remove()
@@ -71,9 +79,12 @@ clearFormatBtn.onclick = event => {
     if (!(text instanceof Text)) return
     node.outerHTML = node.innerHTML
   })
+
+  // flatten inline styling elements
   htmlEditor.querySelectorAll('b,i,u,s').forEach(node => {
     node.outerHTML = node.innerHTML
   })
+
   htmlEditor.oninput?.(event)
 }
 
