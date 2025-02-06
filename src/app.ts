@@ -46,7 +46,7 @@ htmlEditor.oninput = event => {
     }
   })
 
-  // inline span tags in list items
+  // unwrap span tags in list items
   htmlEditor.querySelectorAll<HTMLSpanElement>('li span').forEach(span => {
     let li = span.parentElement!
     if (li.childNodes.length == 1) {
@@ -99,7 +99,7 @@ clearFormatBtn.onclick = event => {
     node.outerHTML = node.innerHTML
   })
 
-  // flatten inline styling elements
+  // unwrap styling elements
   htmlEditor.querySelectorAll('b,i,u,s').forEach(node => {
     node.outerHTML = node.innerHTML
   })
