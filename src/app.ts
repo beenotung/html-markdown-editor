@@ -54,6 +54,14 @@ htmlEditor.oninput = event => {
     }
   })
 
+  // unwrap text elements copied from word documents
+  htmlEditor.querySelectorAll('font').forEach(font => {
+    if (font.childNodes.length != 1) return
+    let text = font.childNodes[0]
+    if (!(text instanceof Text)) return
+    font.outerHTML = font.innerHTML
+  })
+
   let markdown_text = html_to_markdown(htmlEditor.innerHTML)
 
   let lines = markdown_text.split('\n')
