@@ -13,14 +13,14 @@ function markdown_to_html(markdown_text: string) {
   let markdown_ast = markdown.block.parse(markdown_text)
   let html_ast = toHast(markdown_ast)
   let html_text = toHtml(html_ast)
-  return html_text
+  return html_text.trim()
 }
 
 function html_to_markdown(html_text: string) {
   let html_ast = html.html.parsef(html_text)
   let md_ast = toMdast(html_ast)
   let markdown = toMarkdown(md_ast)
-  return markdown
+  return markdown.trim()
 }
 
 markdownEditor.oninput = event => {
