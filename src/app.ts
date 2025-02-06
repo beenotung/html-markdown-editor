@@ -32,7 +32,25 @@ htmlEditor.oninput = event => {
   htmlEditor.querySelectorAll('li br').forEach(br => {
     let li = br.parentElement!
     if (br == li.childNodes[li.childNodes.length - 1]) {
-      br.remove()
+      br.outerHTML = '<span></span>'
+    }
+  })
+
+  // fix nested list items
+  htmlEditor.querySelectorAll('ul > ul').forEach(ul => {
+    let li = ul.previousElementSibling
+    if (li && li.tagName == 'LI') {
+      li.appendChild(ul)
+    } else {
+      ul.outerHTML = `<li>${ul.innerHTML}</li>`
+    }
+  })
+
+  // inline span tags in list items
+  htmlEditor.querySelectorAll<HTMLSpanElement>('li span').forEach(span => {
+    let li = span.parentElement!
+    if (li.childNodes.length == 1) {
+      li.innerText = span.innerText
     }
   })
 
@@ -54,7 +72,8 @@ htmlEditor.oninput = event => {
     changed = true
   })
 
-  markdownEditor.value = lines.join('\n')
+  markdownEditor.value = lines.join('\n').replaceAll('<span />', '')
+
   if (changed) {
     markdownEditor.oninput?.(event)
   }
