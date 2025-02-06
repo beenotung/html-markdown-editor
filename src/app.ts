@@ -55,15 +55,15 @@ clearFormatBtn.onclick = event => {
     node.removeAttribute('class')
     node.removeAttribute('id')
   })
-  htmlEditor.querySelectorAll('span').forEach(span => {
-    if (!span.innerText) {
-      span.remove()
+  htmlEditor.querySelectorAll<HTMLElement>('span,p').forEach(node => {
+    if (!node.innerText) {
+      node.remove()
       return
     }
-    if (span.childNodes.length != 1) return
-    let text = span.childNodes[0]
+    if (node.childNodes.length != 1) return
+    let text = node.childNodes[0]
     if (!(text instanceof Text)) return
-    span.outerHTML = span.innerHTML
+    node.outerHTML = node.innerHTML
   })
   htmlEditor.querySelectorAll('b,i,u,s').forEach(node => {
     node.outerHTML = node.innerHTML
