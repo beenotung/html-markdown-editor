@@ -28,6 +28,12 @@ markdownEditor.oninput = event => {
   htmlEditor.innerHTML = html_text
 }
 htmlEditor.oninput = event => {
+  htmlEditor.querySelectorAll('li br').forEach(br => {
+    let li = br.parentElement!
+    if (br == li.childNodes[li.childNodes.length - 1]) {
+      br.remove()
+    }
+  })
   let markdown_text = html_to_markdown(htmlEditor.innerHTML)
 
   let lines = markdown_text.split('\n')
