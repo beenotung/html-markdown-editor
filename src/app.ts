@@ -62,6 +62,17 @@ htmlEditor.oninput = event => {
     font.outerHTML = font.innerHTML
   })
 
+  // unwrap text elements copied from google doc
+  htmlEditor.querySelectorAll('span').forEach(span => {
+    if (span.childNodes.length != 1) return
+    let weight = +span.style.fontWeight
+    if (weight > 400) {
+      span.outerHTML = span.innerText.bold()
+      return
+    }
+    span.outerHTML = span.innerHTML
+  })
+
   let markdown_text = html_to_markdown(htmlEditor.innerHTML)
 
   let lines = markdown_text.split('\n')
