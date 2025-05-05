@@ -72,6 +72,11 @@ htmlEditor.oninput = event => {
     }
     span.outerHTML = span.innerHTML
   })
+  htmlEditor
+    .querySelectorAll('span[id*="docs-internal-guid"]')
+    .forEach(span => {
+      span.outerHTML = span.innerHTML
+    })
 
   let markdown_text = html_to_markdown(htmlEditor.innerHTML)
 
