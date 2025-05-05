@@ -44,5 +44,10 @@
   ],
   "dependencies": {
     "very-small-parser": "^1.11.0"
+  },
+  "pnpm": {
+    "onlyBuiltDependencies": [
+      "esbuild"
+    ]
   }
 }
