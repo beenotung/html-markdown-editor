@@ -1,7 +1,7 @@
-import { html, markdown } from 'very-small-parser'
+import { micromark } from 'micromark'
+import { gfm, gfmHtml } from 'micromark-extension-gfm'
+import { html } from 'very-small-parser'
 import { toMdast } from 'very-small-parser/lib/html/toMdast'
-import { toText as toHtml } from 'very-small-parser/lib/html/toText'
-import { toHast } from 'very-small-parser/lib/markdown/block/toHast'
 import { toText as toMarkdown } from 'very-small-parser/lib/markdown/block/toText'
 
 let statusNode = querySelector('#status')
@@ -10,9 +10,10 @@ let htmlEditor = querySelector('#htmlEditor')
 let clearFormatBtn = querySelector<HTMLButtonElement>('#clearFormatBtn')
 
 function markdown_to_html(markdown_text: string) {
-  let markdown_ast = markdown.block.parse(markdown_text)
-  let html_ast = toHast(markdown_ast)
-  let html_text = toHtml(html_ast)
+  let html_text = micromark(markdown_text, {
+    extensions: [gfm()],
+    htmlExtensions: [gfmHtml()],
+  })
   return html_text.trim()
 }
 

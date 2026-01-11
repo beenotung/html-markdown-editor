@@ -43,6 +43,8 @@
     "dist"
   ],
   "dependencies": {
+    "micromark": "^4.0.2",
+    "micromark-extension-gfm": "^3.0.0",
     "very-small-parser": "^1.11.0"
   },
   "pnpm": {
