@@ -45,7 +45,10 @@
   "dependencies": {
     "micromark": "^4.0.2",
     "micromark-extension-gfm": "^3.0.0",
-    "very-small-parser": "^1.11.0"
+    "rehype-parse": "^9.0.1",
+    "rehype-remark": "^10.0.1",
+    "remark-stringify": "^11.0.0",
+    "unified": "^11.0.5"
   },
   "pnpm": {
     "onlyBuiltDependencies": [

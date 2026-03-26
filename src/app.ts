@@ -1,8 +1,9 @@
 import { micromark } from 'micromark'
 import { gfm, gfmHtml } from 'micromark-extension-gfm'
-import { html } from 'very-small-parser'
-import { toMdast } from 'very-small-parser/lib/html/toMdast'
-import { toText as toMarkdown } from 'very-small-parser/lib/markdown/block/toText'
+import { unified } from 'unified'
+import rehypeParse from 'rehype-parse'
+import rehypeRemark from 'rehype-remark'
+import remarkStringify from 'remark-stringify'
 
 let statusNode = querySelector('#status')
 let markdownEditor = querySelector<HTMLTextAreaElement>('#markdownEditor')
@@ -17,18 +18,20 @@ function markdown_to_html(markdown_text: string) {
   return html_text.trim()
 }
 
-function html_to_markdown(html_text: string) {
-  let html_ast = html.html.parsef(html_text)
-  let md_ast = toMdast(html_ast)
-  let markdown = toMarkdown(md_ast)
-  return markdown.trim()
+async function html_to_markdown(html_text: string) {
+  let file = await unified()
+    .use(rehypeParse)
+    .use(rehypeRemark)
+    .use(remarkStringify)
+    .process(html_text)
+  return String(file).trim()
 }
 
 markdownEditor.oninput = event => {
   let html_text = markdown_to_html(markdownEditor.value)
   htmlEditor.innerHTML = html_text
 }
-htmlEditor.oninput = event => {
+htmlEditor.oninput = async event => {
   // remove extra <br> tags in list items
   htmlEditor.querySelectorAll('li br').forEach(br => {
     let li = br.parentElement!
@@ -79,7 +82,7 @@ htmlEditor.oninput = event => {
       span.outerHTML = span.innerHTML
     })
 
-  let markdown_text = html_to_markdown(htmlEditor.innerHTML)
+  let markdown_text = await html_to_markdown(htmlEditor.innerHTML)
 
   let lines = markdown_text.split('\n')
 
@@ -104,7 +107,7 @@ htmlEditor.oninput = event => {
   }
 }
 
-clearFormatBtn.onclick = event => {
+clearFormatBtn.onclick = async event => {
   // remove styling attributes
   htmlEditor.querySelectorAll('*').forEach(node => {
     node.removeAttribute('style')
@@ -129,7 +132,7 @@ clearFormatBtn.onclick = event => {
     node.outerHTML = node.innerHTML
   })
 
-  htmlEditor.oninput?.(event)
+  await htmlEditor.oninput?.(event)
 }
 
 function calcSize() {
