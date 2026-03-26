@@ -11,6 +11,7 @@ let clearFormatBtn = querySelector<HTMLButtonElement>('#clearFormatBtn')
 
 function markdown_to_html(markdown_text: string) {
   let html_text = micromark(markdown_text, {
+    allowDangerousHtml: true,
     extensions: [gfm()],
     htmlExtensions: [gfmHtml()],
   })
