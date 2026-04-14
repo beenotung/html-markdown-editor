@@ -28,6 +28,12 @@ function html_to_markdown(html_text: string) {
 markdownEditor.oninput = event => {
   let html_text = markdown_to_html(markdownEditor.value)
   htmlEditor.innerHTML = html_text
+  htmlEditor.querySelectorAll('table').forEach(table => {
+    table.style.borderCollapse = 'collapse'
+    table.querySelectorAll<HTMLTableCellElement>('th,td').forEach(cell => {
+      cell.style.border = '1px solid black'
+    })
+  })
 }
 htmlEditor.oninput = event => {
   // remove extra <br> tags in list items
