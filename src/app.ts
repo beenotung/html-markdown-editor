@@ -34,6 +34,16 @@ markdownEditor.oninput = event => {
       cell.style.border = '1px solid black'
     })
   })
+  htmlEditor.querySelectorAll('pre').forEach(pre => {
+    pre.style.border = '1px solid black'
+    pre.style.width = 'fit-content'
+    pre.style.padding = '0.5rem'
+  })
+  htmlEditor.querySelectorAll('code:not(pre code)').forEach(code => {
+    code.style.background = '#eee'
+    code.style.padding = '0.1rem 0.25rem'
+    code.style.borderRadius = '0.25rem'
+  })
 }
 htmlEditor.oninput = event => {
   // remove extra <br> tags in list items
