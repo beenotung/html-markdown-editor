@@ -19,9 +19,44 @@ function markdown_to_html(markdown_text: string) {
 }
 
 function html_to_markdown(html_text: string) {
-  let html_ast = html.html.parsef(html_text)
+  // extract tables
+  let container = document.createElement('div')
+  container.innerHTML = html_text
+  let plaintext = container.innerText.replaceAll(' ', '').replaceAll('\n', '')
+  let tables: { placeholder: string; rows: string[][] }[] = []
+  for (let table of container.querySelectorAll('table')) {
+    let placeholder
+    for (let i = tables.length + 1; ; i++) {
+      placeholder = `[table-${i}]`
+      if (!plaintext.includes(placeholder)) {
+        break
+      }
+    }
+    let rows = Array.from(table.querySelectorAll('tr'), tr =>
+      Array.from(tr.querySelectorAll('td,th'), cell => cell.innerHTML),
+    )
+    tables.push({ placeholder, rows })
+    table.outerText = placeholder
+    plaintext += placeholder
+  }
+
+  let html_ast = html.html.parsef(container.innerHTML)
   let md_ast = toMdast(html_ast)
   let markdown = toMarkdown(md_ast)
+
+  // restore tables
+  for (let { placeholder, rows } of tables) {
+    if (rows.length == 0) continue
+    let [headers, ...rest] = rows
+    let to = `| ${headers.join(' | ')} |\n`
+    to += `| ${headers.map(() => '---').join(' | ')} |\n`
+    for (let cols of rest) {
+      to += `| ${cols.join(' | ')} |\n`
+    }
+    to = '\n\n' + to.trim() + '\n\n'
+    markdown = markdown.replace(placeholder, to)
+  }
+
   return markdown.trim()
 }
 
