@@ -81,10 +81,134 @@ function applyStyle() {
     })
 }
 
+function applyHTMLEditorEventListeners() {
+  htmlEditor.querySelectorAll('table').forEach(table => {
+    function showDialog(event: MouseEvent) {
+      let td = (event.target as HTMLElement)?.closest('td,th')
+      if (!td) return
+      let tr = td.closest('tr')!
+      let dialog = document.createElement('dialog')
+      dialog.innerHTML = /* html */ `
+        <div style="display: flex; justify-content: flex-end;">
+          <button data-action="mute">Mute for 5 seconds</button>
+          <button data-action="close">Close</button>
+        </div>
+
+        <h2>Table Operations</h2>
+        <button data-action="deleteTable">Delete Table</button>
+
+        <h2>Row Operations</h2>
+        <button data-action="deleteRow">Delete Row</button>
+        <button data-action="insertRowBefore">Insert Row Before</button>
+        <button data-action="insertRowAfter">Insert Row After</button>
+
+        <h2>Column Operations</h2>
+        <button data-action="deleteCol">Delete Column</button>
+        <button data-action="insertColBefore">Insert Column Before</button>
+        <button data-action="insertColAfter">Insert Column After</button>
+      `
+      function getIndex() {
+        let index = 0
+        for (let cell of tr.cells) {
+          if (cell == td) break
+          index++
+        }
+        return index
+      }
+
+      function createCell(html?: string) {
+        let td = document.createElement('td')
+        td.style.border = '1px solid black'
+        if (html) {
+          td.innerHTML = html
+        } else {
+          td.appendChild(document.createElement('br'))
+        }
+        return td
+      }
+
+      function createRow() {
+        let n = tr.cells.length
+        let newRow = document.createElement('tr')
+        for (let i = 0; i < n; i++) {
+          let newCell = createCell()
+          newRow.appendChild(newCell)
+        }
+        return newRow
+      }
+
+      let actions = {
+        mute() {
+          actions.close()
+          table.oncontextmenu = null
+          setTimeout(() => {
+            table.oncontextmenu = showDialog
+          }, 5000)
+        },
+        close() {
+          dialog.close()
+        },
+        deleteTable() {
+          table.remove()
+          actions.close()
+        },
+        deleteRow() {
+          let tr = td.closest('tr')!
+          tr.remove()
+          actions.close()
+        },
+        insertRowBefore() {
+          let newRow = createRow()
+          tr.before(newRow)
+          actions.close()
+        },
+        insertRowAfter() {
+          let newRow = createRow()
+          tr.after(newRow)
+          actions.close()
+        },
+        deleteCol() {
+          let index = getIndex()
+          for (let tr of table.rows) {
+            tr.cells[index].remove()
+          }
+          actions.close()
+        },
+        insertColBefore() {
+          let index = getIndex()
+          for (let tr of table.rows) {
+            tr.cells[index].before(createCell('&nbsp;'))
+          }
+          actions.close()
+        },
+        insertColAfter() {
+          let index = getIndex()
+          for (let tr of table.rows) {
+            tr.cells[index].after(createCell('&nbsp;'))
+          }
+          actions.close()
+        },
+      }
+      for (let [key, value] of Object.entries(actions)) {
+        let button = dialog.querySelector<HTMLButtonElement>(
+          `button[data-action="${key}"]`,
+        )!
+        button.onclick = value
+      }
+      table.insertAdjacentElement('afterend', dialog)
+      dialog.showModal()
+      event.preventDefault()
+      return false
+    }
+    table.oncontextmenu = showDialog
+  })
+}
+
 markdownEditor.oninput = event => {
   let html_text = markdown_to_html(markdownEditor.value)
   htmlEditor.innerHTML = html_text
   applyStyle()
+  applyHTMLEditorEventListeners()
 }
 htmlEditor.oninput = event => {
   // remove extra <br> tags in list items
@@ -156,6 +280,8 @@ htmlEditor.oninput = event => {
   })
 
   markdownEditor.value = lines.join('\n').replaceAll('<span />', '')
+
+  applyHTMLEditorEventListeners()
 
   if (changed) {
     markdownEditor.oninput?.(event)
