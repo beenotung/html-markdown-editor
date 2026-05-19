@@ -166,6 +166,16 @@ clearFormatBtn.onclick = event => {
       node.removeAttribute(attr)
     }
   })
+
+  // trim whitespace
+  htmlEditor.querySelectorAll('*').forEach(node => {
+    if (node.childNodes.length !== 1) return
+    let text = node.childNodes[0]
+    if (!(text instanceof Text)) return
+    let textContent = text.textContent
+    let trimmed = textContent.trim()
+    if (trimmed === textContent) return
+    text.textContent = trimmed
   })
 
   // remove empty elements
