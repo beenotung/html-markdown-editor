@@ -60,7 +60,28 @@ function html_to_markdown(html_text: string) {
   return markdown.trim()
 }
 
+// unescape style elements in text nodes
+function unescapeStyleElements(node: ChildNode) {
+  if (node instanceof Text) {
+    let text = node.textContent.trim()
+    console.log({ text })
+    if (!text.startsWith('<style>') || !text.endsWith('</style>')) return
+    let style = document.createElement('style')
+    style.textContent = text.slice('<style>'.length, -'</style>'.length)
+    debugger
+    node.replaceWith(style)
+    return
+  }
+  if (!(node instanceof HTMLElement)) return
+  if (node.tagName.toLowerCase() == 'code') return
+  node.childNodes.forEach(child => {
+    unescapeStyleElements(child)
+  })
+}
+
 function applyStyle() {
+  unescapeStyleElements(htmlEditor)
+
   htmlEditor.querySelectorAll('table').forEach(table => {
     table.style.borderCollapse = 'collapse'
     table.querySelectorAll<HTMLTableCellElement>('th,td').forEach(cell => {
