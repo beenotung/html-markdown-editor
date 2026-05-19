@@ -161,9 +161,11 @@ htmlEditor.oninput = event => {
 clearFormatBtn.onclick = event => {
   // remove styling attributes
   htmlEditor.querySelectorAll('*').forEach(node => {
-    node.removeAttribute('style')
-    node.removeAttribute('class')
-    node.removeAttribute('id')
+    let attrs = ['style', 'class', 'id', 'dir', 'aria-level']
+    for (let attr of attrs) {
+      node.removeAttribute(attr)
+    }
+  })
   })
 
   // remove empty elements
