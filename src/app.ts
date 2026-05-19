@@ -60,9 +60,7 @@ function html_to_markdown(html_text: string) {
   return markdown.trim()
 }
 
-markdownEditor.oninput = event => {
-  let html_text = markdown_to_html(markdownEditor.value)
-  htmlEditor.innerHTML = html_text
+function applyStyle() {
   htmlEditor.querySelectorAll('table').forEach(table => {
     table.style.borderCollapse = 'collapse'
     table.querySelectorAll<HTMLTableCellElement>('th,td').forEach(cell => {
@@ -81,6 +79,12 @@ markdownEditor.oninput = event => {
       code.style.padding = '0.1rem 0.25rem'
       code.style.borderRadius = '0.25rem'
     })
+}
+
+markdownEditor.oninput = event => {
+  let html_text = markdown_to_html(markdownEditor.value)
+  htmlEditor.innerHTML = html_text
+  applyStyle()
 }
 htmlEditor.oninput = event => {
   // remove extra <br> tags in list items
@@ -194,6 +198,8 @@ clearFormatBtn.onclick = event => {
   htmlEditor.querySelectorAll('b,i,u,s').forEach(node => {
     node.outerHTML = node.innerHTML
   })
+
+  applyStyle()
 
   htmlEditor.oninput?.(event)
 }
