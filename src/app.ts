@@ -90,7 +90,7 @@ function applyHTMLEditorEventListeners() {
       let dialog = document.createElement('dialog')
       dialog.innerHTML = /* html */ `
         <div style="display: flex; justify-content: flex-end;">
-          <button data-action="mute">Mute for 5 seconds</button>
+          <button data-action="mute" title="Restore right-click in the table for devtool inspect, until right-click outside the table">Mute</button>
           <button data-action="close">Close</button>
         </div>
 
@@ -141,9 +141,14 @@ function applyHTMLEditorEventListeners() {
         mute() {
           actions.close()
           table.oncontextmenu = null
-          setTimeout(() => {
+          document.body.oncontextmenu = event => {
+            let target = event.target as HTMLElement
+            if (target.closest('table') == table) {
+              return
+            }
             table.oncontextmenu = showDialog
-          }, 5000)
+            document.body.oncontextmenu = null
+          }
         },
         close() {
           dialog.close()
