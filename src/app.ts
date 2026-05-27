@@ -15,14 +15,32 @@ function markdown_to_html(markdown_text: string) {
     extensions: [gfm()],
     htmlExtensions: [gfmHtml()],
   })
-  return html_text.trim()
+
+  let container = document.createElement('div')
+  container.innerHTML = html_text
+  container.querySelectorAll('input[type="checkbox"]').forEach(input => {
+    input.removeAttribute('disabled')
+  })
+  return container.innerHTML.trim()
 }
 
 function html_to_markdown(html_text: string) {
-  // extract tables
   let container = document.createElement('div')
   container.innerHTML = html_text
   let plaintext = container.innerText.replaceAll(' ', '').replaceAll('\n', '')
+
+  // convert checkbox to markdown
+  for (let input of container.querySelectorAll<HTMLInputElement>(
+    'li > input:first-child',
+  )) {
+    if (input.checked) {
+      input.outerHTML = `[x]`
+    } else {
+      input.outerHTML = `[ ]`
+    }
+  }
+
+  // extract tables
   let tables: { placeholder: string; rows: string[][] }[] = []
   for (let table of container.querySelectorAll('table')) {
     let placeholder
@@ -103,6 +121,20 @@ function applyStyle() {
 }
 
 function applyHTMLEditorEventListeners() {
+  htmlEditor
+    .querySelectorAll<HTMLInputElement>('input[type="checkbox"]')
+    .forEach(input => {
+      input.onchange = () => {
+        debugger
+        if (input.checked) {
+          input.setAttribute('checked', '')
+        } else {
+          input.removeAttribute('checked')
+        }
+        htmlEditor.oninput?.(new Event('input'))
+      }
+    })
+
   htmlEditor.querySelectorAll('table').forEach(table => {
     function showDialog(event: MouseEvent) {
       let td = (event.target as HTMLElement)?.closest('td,th')
