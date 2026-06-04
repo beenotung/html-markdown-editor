@@ -58,7 +58,14 @@ function html_to_markdown(html_text: string) {
     plaintext += placeholder
   }
 
-  let html_ast = html.html.parsef(container.innerHTML)
+  // export as html
+  let html_patched = container.innerHTML
+    .replaceAll('<br>', '<br/>')
+    .replaceAll('<hr>', '<hr/>')
+    .replaceAll('<br/>\n', '<br/>')
+    .replaceAll('<hr/>\n', '<hr/>')
+
+  let html_ast = html.html.parsef(html_patched)
   let md_ast = toMdast(html_ast)
   let markdown = toMarkdown(md_ast)
 
