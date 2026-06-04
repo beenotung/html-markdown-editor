@@ -82,7 +82,6 @@ function html_to_markdown(html_text: string) {
 function unescapeStyleElements(node: ChildNode) {
   if (node instanceof Text) {
     let text = node.textContent.trim()
-    console.log({ text })
     if (!text.startsWith('<style>') || !text.endsWith('</style>')) return
     let style = document.createElement('style')
     style.textContent = text.slice('<style>'.length, -'</style>'.length)
