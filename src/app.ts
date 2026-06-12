@@ -110,6 +110,7 @@ function applyStyle() {
     table.style.borderCollapse = 'collapse'
     table.querySelectorAll<HTMLTableCellElement>('th,td').forEach(cell => {
       cell.style.border = '1px solid black'
+      cell.style.padding = '0.25rem 0.5rem'
     })
   })
   htmlEditor.querySelectorAll('pre').forEach(pre => {
