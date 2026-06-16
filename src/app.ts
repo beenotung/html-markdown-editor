@@ -216,7 +216,6 @@ function applyHTMLEditorEventListeners() {
     .querySelectorAll<HTMLInputElement>('input[type="checkbox"]')
     .forEach(input => {
       input.onchange = () => {
-        debugger
         if (input.checked) {
           input.setAttribute('checked', '')
         } else {
