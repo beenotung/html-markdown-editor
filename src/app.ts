@@ -15,8 +15,14 @@ let statusNode = querySelector('#status')
 let markdownEditor = querySelector<HTMLTextAreaElement>('#markdownEditor')
 let htmlEditor = querySelector('#htmlEditor')
 let clearFormatBtn = querySelector<HTMLButtonElement>('#clearFormatBtn')
+let copyRichBtn = querySelector<HTMLButtonElement>('#copyRichBtn')
+let copyHtmlBtn = querySelector<HTMLButtonElement>('#copyHtmlBtn')
+let copyMarkdownBtn = querySelector<HTMLButtonElement>('#copyMarkdownBtn')
 let latexToggle = querySelector<HTMLInputElement>('#latexToggle')
 let mermaidToggle = querySelector<HTMLInputElement>('#mermaidToggle')
+let toast = querySelector('#toast')
+
+let toastTimeout: number | undefined
 
 function markdown_to_html(markdown_text: string) {
   let html_text = micromark(markdown_text, {
@@ -483,6 +489,55 @@ clearFormatBtn.onclick = event => {
   applyStyle()
 
   htmlEditor.oninput?.(event)
+}
+
+function showToast(msg: string, anchor: HTMLElement) {
+  let rect = anchor.getBoundingClientRect()
+  toast.style.top = rect.bottom + 12 + 'px'
+  toast.style.left = rect.left + rect.width / 2 + 'px'
+  toast.style.transform = 'translateX(-50%)'
+  toast.textContent = msg
+  toast.classList.add('show')
+  clearTimeout(toastTimeout)
+  toastTimeout = window.setTimeout(() => {
+    toast.classList.remove('show')
+  }, 2000)
+}
+
+copyRichBtn.onclick = async event => {
+  let html = htmlEditor.innerHTML
+  let text = htmlEditor.innerText
+  await navigator.clipboard.write([
+    new ClipboardItem({
+      'text/html': new Blob([html], { type: 'text/html' }),
+      'text/plain': new Blob([text], { type: 'text/plain' }),
+    }),
+  ])
+  copyRichBtn.textContent = '✓'
+  setTimeout(() => {
+    copyRichBtn.textContent = 'R'
+  }, 2000)
+  showToast('Copied Rich Text', copyRichBtn)
+}
+
+copyHtmlBtn.onclick = async event => {
+  let html = htmlEditor.innerHTML
+  await navigator.clipboard.writeText(html)
+  copyHtmlBtn.textContent = '✓'
+  setTimeout(() => {
+    copyHtmlBtn.textContent = 'H'
+  }, 2000)
+  showToast('Copied Raw HTML', copyHtmlBtn)
+}
+
+copyMarkdownBtn.onclick = async event => {
+  let markdown = markdownEditor.value
+  await navigator.clipboard.writeText(markdown)
+  copyMarkdownBtn.textContent = '✓'
+  setTimeout(() => {
+    copyMarkdownBtn.textContent = 'M'
+  }, 2000)
+  showToast('Copied Markdown', copyMarkdownBtn)
 }
 
 latexToggle.onchange = event => markdownEditor.oninput?.(event)

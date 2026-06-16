@@ -73,6 +73,21 @@
       #hintDialog dt {
         margin-top: 1rem;
       }
+      #toast {
+        position: fixed;
+        background: #333;
+        color: #fff;
+        padding: 0.5rem 1rem;
+        border-radius: 0.5rem;
+        font-size: 0.875rem;
+        opacity: 0;
+        transition: opacity 0.2s;
+        pointer-events: none;
+        z-index: 1000;
+      }
+      #toast.show {
+        opacity: 1;
+      }
     </style>
   </head>
   <body>
@@ -90,7 +105,7 @@
       <p id="status">Loading...</p>
       <div id="container">
         <div class="editor-container">
-          <h2>Markdown Content</h2>
+          <h2>Markdown Content <i role="button" id="copyMarkdownBtn" title="Copy Markdown">M</i></h2>
           <textarea
             id="markdownEditor"
             class="editor"
@@ -126,6 +141,8 @@
               ?
             </i>
             <i role="button" id="clearFormatBtn" title="Clear Format">F</i>
+            <i role="button" id="copyRichBtn" title="Copy Rich Text (paste into Google Docs)">R</i>
+            <i role="button" id="copyHtmlBtn" title="Copy Raw HTML code">H</i>
             <label title="Toggle LaTeX rendering">
               <input type="checkbox" id="latexToggle" checked /> LaTeX
             </label>
@@ -142,6 +159,7 @@
         </div>
       </div>
     </div>
+    <div id="toast"></div>
     <script src="dist/bundle.js"></script>
   </body>
 </html>
