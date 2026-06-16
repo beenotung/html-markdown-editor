@@ -15,6 +15,8 @@ let statusNode = querySelector('#status')
 let markdownEditor = querySelector<HTMLTextAreaElement>('#markdownEditor')
 let htmlEditor = querySelector('#htmlEditor')
 let clearFormatBtn = querySelector<HTMLButtonElement>('#clearFormatBtn')
+let latexToggle = querySelector<HTMLInputElement>('#latexToggle')
+let mermaidToggle = querySelector<HTMLInputElement>('#mermaidToggle')
 
 function markdown_to_html(markdown_text: string) {
   let html_text = micromark(markdown_text, {
@@ -356,9 +358,14 @@ markdownEditor.oninput = async event => {
   htmlEditor.innerHTML = html_text
   applyStyle()
   applyHTMLEditorEventListeners()
-  renderLatex(htmlEditor)
-  await renderMermaid(htmlEditor)
+  if (latexToggle.checked) {
+    renderLatex(htmlEditor)
+  }
+  if (mermaidToggle.checked) {
+    await renderMermaid(htmlEditor)
+  }
 }
+
 htmlEditor.oninput = event => {
   // remove extra <br> tags in list items
   htmlEditor.querySelectorAll('li br').forEach(br => {
@@ -478,6 +485,9 @@ clearFormatBtn.onclick = event => {
 
   htmlEditor.oninput?.(event)
 }
+
+latexToggle.onchange = event => markdownEditor.oninput?.(event)
+mermaidToggle.onchange = event => markdownEditor.oninput?.(event)
 
 function calcSize() {
   let html = htmlEditor.innerHTML
