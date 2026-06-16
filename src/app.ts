@@ -3,6 +3,12 @@ import { gfm, gfmHtml } from 'micromark-extension-gfm'
 import { html } from 'very-small-parser'
 import { toMdast } from 'very-small-parser/lib/html/toMdast'
 import { toText as toMarkdown } from 'very-small-parser/lib/markdown/block/toText'
+import mermaid from 'mermaid'
+
+mermaid.initialize({
+  startOnLoad: false,
+  theme: 'default',
+})
 
 let statusNode = querySelector('#status')
 let markdownEditor = querySelector<HTMLTextAreaElement>('#markdownEditor')
@@ -101,6 +107,35 @@ function unescapeStyleElements(node: ChildNode) {
   node.childNodes.forEach(child => {
     unescapeStyleElements(child)
   })
+}
+
+async function renderMermaid(container: HTMLElement) {
+  let counter = 0
+  let elements = container.querySelectorAll(
+    'pre.language-mermaid, code.language-mermaid',
+  )
+  for (let code of elements) {
+    let pre =
+      code.tagName === 'PRE'
+        ? (code as HTMLPreElement)
+        : (code.closest('pre') as HTMLPreElement)
+    if (!pre) continue
+    let content = code.textContent || ''
+    if (!content.trim()) continue
+    let id = `mermaid-${++counter}`
+    try {
+      let { svg } = await mermaid.render(id, content)
+      let div = document.createElement('div')
+      div.className = 'mermaid-diagram'
+      div.innerHTML = svg
+      div.style.display = 'flex'
+      div.style.justifyContent = 'center'
+      div.style.padding = '1rem'
+      pre.replaceWith(div)
+    } catch (error) {
+      console.error('Mermaid render error:', error)
+    }
+  }
 }
 
 function applyStyle() {
@@ -269,11 +304,12 @@ function applyHTMLEditorEventListeners() {
   })
 }
 
-markdownEditor.oninput = event => {
+markdownEditor.oninput = async event => {
   let html_text = markdown_to_html(markdownEditor.value)
   htmlEditor.innerHTML = html_text
   applyStyle()
   applyHTMLEditorEventListeners()
+  await renderMermaid(htmlEditor)
 }
 htmlEditor.oninput = event => {
   // remove extra <br> tags in list items
