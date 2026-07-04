@@ -498,6 +498,24 @@ htmlEditor.oninput = event => {
   }
 }
 
+function hasMedia(node: Element) {
+  let tagName = node.tagName.toLowerCase()
+  switch (tagName) {
+    case 'img':
+    case 'audio':
+    case 'video':
+      return !!node.getAttribute('src')
+    case 'svg':
+      return true
+  }
+  for (let child of node.children) {
+    if (hasMedia(child)) {
+      return true
+    }
+  }
+  return false
+}
+
 clearFormatBtn.onclick = event => {
   // remove styling attributes
   htmlEditor.querySelectorAll('*').forEach(node => {
@@ -509,6 +527,9 @@ clearFormatBtn.onclick = event => {
 
   // trim whitespace
   htmlEditor.querySelectorAll('*').forEach(node => {
+    if (hasMedia(node)) {
+      return
+    }
     if (node.childNodes.length !== 1) return
     let text = node.childNodes[0]
     if (!(text instanceof Text)) return
@@ -518,16 +539,17 @@ clearFormatBtn.onclick = event => {
     text.textContent = trimmed
   })
 
-  // remove empty elements
-  htmlEditor.querySelectorAll<HTMLElement>('span,p').forEach(node => {
-    if (!node.innerText) {
+  // unwrap span elements
+  htmlEditor.querySelectorAll<HTMLSpanElement>('span').forEach(span => {
+    if (span.closest('pre,code')) return
+    span.outerHTML = span.innerHTML
+  })
+
+  // remove empty paragraphs
+  htmlEditor.querySelectorAll<HTMLElement>('p').forEach(node => {
+    if (!node.innerText && !hasMedia(node)) {
       node.remove()
-      return
     }
-    if (node.childNodes.length != 1) return
-    let text = node.childNodes[0]
-    if (!(text instanceof Text)) return
-    node.outerHTML = node.innerHTML
   })
 
   // unwrap styling elements
