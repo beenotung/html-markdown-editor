@@ -217,6 +217,50 @@ function applyStyle() {
     })
 }
 
+function isTableCellEmpty(cell: HTMLTableCellElement) {
+  return !cell.innerText.replace(/\u00a0/g, '').trim()
+}
+
+function deleteEmptyTableRowsAndCols(table: HTMLTableElement) {
+  let changed = true
+  while (changed) {
+    changed = false
+
+    for (let rowIndex = table.rows.length - 1; rowIndex >= 0; rowIndex--) {
+      let row = table.rows[rowIndex]
+      let allEmpty = Array.from(row.cells).every(isTableCellEmpty)
+      if (!allEmpty) continue
+      row.remove()
+      changed = true
+    }
+
+    if (table.rows.length == 0) {
+      table.remove()
+      return
+    }
+
+    let colCount = table.rows[0].cells.length
+    for (let colIndex = colCount - 1; colIndex >= 0; colIndex--) {
+      let allEmpty = true
+      for (let row of table.rows) {
+        if (!row.cells[colIndex] || !isTableCellEmpty(row.cells[colIndex])) {
+          allEmpty = false
+          break
+        }
+      }
+      if (!allEmpty) continue
+      for (let row of table.rows) {
+        row.cells[colIndex]?.remove()
+      }
+      changed = true
+    }
+  }
+
+  if (table.rows.length == 0 || table.rows[0].cells.length == 0) {
+    table.remove()
+  }
+}
+
 function applyHTMLEditorEventListeners() {
   htmlEditor
     .querySelectorAll<HTMLInputElement>('input[type="checkbox"]')
@@ -245,6 +289,7 @@ function applyHTMLEditorEventListeners() {
 
         <h2>Table Operations</h2>
         <button data-action="deleteTable">Delete Table</button>
+        <button data-action="deleteEmptyRowsAndCols">Delete Empty Rows/Cols</button>
 
         <h2>Row Operations</h2>
         <button data-action="deleteRow">Delete Row</button>
@@ -304,6 +349,10 @@ function applyHTMLEditorEventListeners() {
         },
         deleteTable() {
           table.remove()
+          actions.close()
+        },
+        deleteEmptyRowsAndCols() {
+          deleteEmptyTableRowsAndCols(table)
           actions.close()
         },
         deleteRow() {
