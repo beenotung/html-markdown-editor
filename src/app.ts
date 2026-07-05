@@ -349,24 +349,66 @@ function applyStyle() {
   unescapeStyleElements(htmlEditor)
 
   htmlEditor.querySelectorAll('table').forEach(table => {
-    table.style.borderCollapse = 'collapse'
+    applyStyleIfNotSet(table, [
+      {
+        property: 'borderCollapse',
+        default: 'separate',
+        preferred: 'collapse',
+      },
+    ])
     table.querySelectorAll<HTMLTableCellElement>('th,td').forEach(cell => {
-      cell.style.border = '1px solid black'
-      cell.style.padding = '0.25rem 0.5rem'
+      applyStyleIfNotSet(cell, [
+        { property: 'borderWidth', default: '0px', preferred: '1px' },
+        { property: 'borderStyle', default: 'none', preferred: 'solid' },
+        { property: 'borderColor', default: '', preferred: 'black' },
+        { property: 'padding', default: '0px', preferred: '0.25rem 0.5rem' },
+      ])
     })
   })
   htmlEditor.querySelectorAll('pre').forEach(pre => {
-    pre.style.border = '1px solid black'
-    pre.style.width = 'fit-content'
-    pre.style.padding = '0.5rem'
+    pre.style.width ||= 'fit-content' // FIXME avoid overwrite existing width if specified
+    applyStyleIfNotSet(pre, [
+      { property: 'borderWidth', default: '0px', preferred: '1px' },
+      { property: 'borderStyle', default: 'none', preferred: 'solid' },
+      { property: 'borderColor', default: '', preferred: 'black' },
+      { property: 'padding', default: '0px', preferred: '0.5rem' },
+    ])
   })
   htmlEditor
     .querySelectorAll<HTMLElement>('code:not(pre code)')
     .forEach(code => {
-      code.style.background = '#eee'
-      code.style.padding = '0.1rem 0.25rem'
-      code.style.borderRadius = '0.25rem'
+      applyStyleIfNotSet(code, [
+        { property: 'backgroundColor', default: '', preferred: '#eee' },
+        { property: 'padding', default: '0px', preferred: '0.1rem 0.25rem' },
+        { property: 'borderRadius', default: '0px', preferred: '0.25rem' },
+      ])
     })
+}
+
+function applyStyleIfNotSet(
+  element: HTMLElement,
+  pairs: {
+    property: keyof Pick<
+      CSSStyleDeclaration,
+      | 'borderCollapse'
+      | 'borderWidth'
+      | 'borderStyle'
+      | 'borderColor'
+      | 'padding'
+      | 'backgroundColor'
+      | 'borderRadius'
+    >
+    default: string
+    preferred: string
+  }[],
+) {
+  let styles = getComputedStyle(element)
+  for (let pair of pairs) {
+    let value = styles[pair.property]
+    if (value === '' || value === pair.default) {
+      element.style[pair.property] = pair.preferred
+    }
+  }
 }
 
 function isTableCellEmpty(cell: HTMLTableCellElement) {
