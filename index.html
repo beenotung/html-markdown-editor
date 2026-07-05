@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
@@ -105,7 +105,10 @@
       <p id="status">Loading...</p>
       <div id="container">
         <div class="editor-container">
-          <h2>Markdown Content <i role="button" id="copyMarkdownBtn" title="Copy Markdown">M</i></h2>
+          <h2>
+            Markdown Content
+            <i role="button" id="copyMarkdownBtn" title="Copy Markdown">M</i>
+          </h2>
           <textarea
             id="markdownEditor"
             class="editor"
@@ -141,7 +144,12 @@
               ?
             </i>
             <i role="button" id="clearFormatBtn" title="Clear Format">F</i>
-            <i role="button" id="copyRichBtn" title="Copy Rich Text (paste into Google Docs)">R</i>
+            <i
+              role="button"
+              id="copyRichBtn"
+              title="Copy Rich Text (paste into Google Docs)"
+              >R</i
+            >
             <i role="button" id="copyHtmlBtn" title="Copy Raw HTML code">H</i>
             <label title="Toggle LaTeX rendering">
               <input type="checkbox" id="latexToggle" checked /> LaTeX
