@@ -25,11 +25,18 @@ let toast = querySelector('#toast')
 let toastTimeout: number | undefined
 
 function markdown_to_html(markdown_text: string) {
+  var { markdown_text, iconLinkBlocks } = extractIconLinks(markdown_text)
+
   let html_text = micromark(markdown_text, {
     allowDangerousHtml: true,
     extensions: [gfm()],
     htmlExtensions: [gfmHtml()],
   })
+
+  // restore icon links
+  for (let { placeholder, html } of iconLinkBlocks) {
+    html_text = html_text.replace(placeholder, html)
+  }
 
   let container = document.createElement('div')
   container.innerHTML = html_text
@@ -39,9 +46,49 @@ function markdown_to_html(markdown_text: string) {
   return container.innerHTML.trim()
 }
 
+function extractIconLinks(markdown_text: string) {
+  /**
+   * When micromark parses link with svg inside, a newline after <svg> makes it think the paragraph ended.
+   * So we convert `[<svg>...</svg>](url "title")` into `<a href="url" title="title"><svg>...</svg></a>`,
+   * where the title is optional.
+   */
+  markdown_text = markdown_text.replace(
+    /\[(\s*<svg[\s\S]*?<\/svg>\s*)\]\((\S+?)(?:\s+(?:"([^"]*)"|'([^']*)'))?\)/gi,
+    (_, svg, url, title1, title2) => {
+      let title = title1 || title2
+      let titleAttr = title ? ` title="${title}"` : ''
+      return `<a href="${url}"${titleAttr}>${svg.trim()}</a>`
+    },
+  )
+
+  /**
+   * Find all `<a>…<svg>…</svg>…</a>` blocks,
+   * store them into array and replace with placeholder `%%ICON_LINK_{I}%%`.
+   */
+  let iconLinkBlocks: { placeholder: string; html: string }[] = []
+  markdown_text = markdown_text.replace(
+    /<a\s[^>]*>[\s\S]*?<svg[\s\S]*?<\/svg>[\s\S]*?<\/a>/gi,
+    (html, offset) => {
+      let lineStart = markdown_text.lastIndexOf('\n', offset - 1) + 1
+      let lineEnd = markdown_text.indexOf('\n', offset)
+      if (lineEnd == -1) lineEnd = markdown_text.length
+      let line = markdown_text.slice(lineStart, lineEnd)
+      let entire_line = line.replace(html, '').trim().length == 0
+      let placeholder = `%%ICON_LINK_${iconLinkBlocks.length + 1}%%`
+      html = html.replace(/>\s+</g, '><').trim()
+      iconLinkBlocks.push({ placeholder, html })
+      return entire_line ? `\n\n${placeholder}\n\n` : placeholder
+    },
+  )
+  return { markdown_text, iconLinkBlocks }
+}
+
 function html_to_markdown(html_text: string) {
   let container = document.createElement('div')
   container.innerHTML = html_text
+
+  normalizeHtmlForMarkdown(container)
+
   let plaintext = container.innerText.replaceAll(' ', '').replaceAll('\n', '')
 
   // convert checkbox to markdown
@@ -53,6 +100,25 @@ function html_to_markdown(html_text: string) {
     } else {
       input.outerHTML = `[ ]`
     }
+  }
+
+  // extract icon links as raw html (micromark cannot round-trip [<svg>](url))
+  let iconLinks: { placeholder: string; html: string; inline: boolean }[] = []
+  for (let a of container.querySelectorAll('a')) {
+    if (!a.querySelector('svg')) continue
+    if (a.innerText.trim()) continue
+    let placeholder
+    for (let i = iconLinks.length + 1; ; i++) {
+      placeholder = `[icon-link-${i}]`
+      if (!plaintext.includes(placeholder)) break
+    }
+    iconLinks.push({
+      placeholder,
+      html: a.outerHTML,
+      inline: hasSibling(a),
+    })
+    a.outerText = placeholder
+    plaintext += placeholder
   }
 
   // extract tables
@@ -79,6 +145,7 @@ function html_to_markdown(html_text: string) {
     .replaceAll('<hr>', '<hr/>')
     .replaceAll('<br/>\n', '<br/>')
     .replaceAll('<hr/>\n', '<hr/>')
+    .replace(/>\s+</g, '><')
 
   let html_ast = html.html.parsef(html_patched)
   let md_ast = toMdast(html_ast)
@@ -97,7 +164,48 @@ function html_to_markdown(html_text: string) {
     markdown = markdown.replace(placeholder, to)
   }
 
+  // restore icon links
+  for (let { placeholder, html, inline } of iconLinks) {
+    let replacement = inline ? html : `\n\n${html}\n\n`
+    markdown = markdown.replace(placeholder, replacement)
+  }
+
   return markdown.trim()
+}
+
+function hasSibling(a: HTMLAnchorElement) {
+  let parent = a.parentElement
+  if (!parent) return false
+  return parent.innerHTML.replace(a.outerHTML, '').trim().length > 0
+}
+
+function normalizeHtmlForMarkdown(container: HTMLElement) {
+  // trim tailing whitespaces in main text
+  if (container.childNodes.length === 1) {
+    let child = container.firstChild
+    if (child instanceof Text) {
+      child.textContent = child.textContent.trimEnd()
+      return
+    }
+  }
+
+  // trim tailing whitespaces in each line
+  for (let div of container.querySelectorAll('div')) {
+    let child = div.lastChild
+    if (child instanceof Text) {
+      child.textContent = child.textContent.trimEnd()
+    }
+  }
+
+  // merge consecutive divs with <br>
+  for (let index = container.children.length - 1; index > 0; index--) {
+    let child = container.children[index]
+    if (child.tagName.toLowerCase() != 'div') continue
+    let prev = container.children[index - 1]
+    if (prev.tagName.toLowerCase() != 'div') continue
+    prev.innerHTML += '<br>' + child.innerHTML
+    child.remove()
+  }
 }
 
 // unescape style elements in text nodes
@@ -545,21 +653,77 @@ clearFormatBtn.onclick = event => {
     span.outerHTML = span.innerHTML
   })
 
-  // remove empty paragraphs
-  htmlEditor.querySelectorAll<HTMLElement>('p').forEach(node => {
-    if (!node.innerText && !hasMedia(node)) {
-      node.remove()
-    }
-  })
-
   // unwrap styling elements
   htmlEditor.querySelectorAll('b,i,u,s').forEach(node => {
     node.outerHTML = node.innerHTML
   })
 
+  // remove excessive newlines
+  let nodes = htmlEditor.querySelectorAll('br+br+br')
+  for (let i = nodes.length - 1; i >= 0; i--) {
+    let third = nodes[i]
+    let second = third.previousSibling
+    if (
+      !(second instanceof HTMLElement && second.tagName.toLowerCase() === 'br')
+    ) {
+      continue
+    }
+    let first = second.previousSibling
+    if (
+      !(first instanceof HTMLElement && first.tagName.toLowerCase() === 'br')
+    ) {
+      continue
+    }
+    third.remove()
+  }
+  nodes = htmlEditor.querySelectorAll(':is(p,div)+:is(p,div)+:is(p,div)')
+  for (let i = nodes.length - 1; i >= 0; i--) {
+    let third = nodes[i]
+    if (!isEmptyBlock(third)) continue
+
+    let second = third.previousSibling
+    if (!isEmptyBlock(second)) continue
+
+    let first = second!.previousSibling
+    if (!isEmptyBlock(first)) continue
+
+    third.remove()
+  }
+
+  // replace empty <p> with <div>
+  htmlEditor.querySelectorAll('p').forEach(p => {
+    if (!isEmptyBlock(p)) return
+    p.outerHTML = '<div></div>'
+  })
+
+  // remove empty <div> siblings of <p>
+  htmlEditor.querySelectorAll('div').forEach(div => {
+    if (!isEmptyBlock(div)) return
+    let prev = div.previousSibling
+    if (prev instanceof HTMLElement && prev.tagName.toLowerCase() === 'p') {
+      div.remove()
+      return
+    }
+    let next = div.nextSibling
+    if (next instanceof HTMLElement && next.tagName.toLowerCase() === 'p') {
+      div.remove()
+      return
+    }
+  })
+
   applyStyle()
 
   htmlEditor.oninput?.(event)
+}
+
+// empty div or p
+function isEmptyBlock(node: Node | null): boolean {
+  if (!(node instanceof HTMLElement)) return false
+  if (!node.parentElement) return false
+  let tagName = node.tagName.toLowerCase()
+  if (tagName !== 'p' && tagName !== 'div') return false
+  let html = node.innerHTML.trim()
+  return html.length === 0 || html === '<br>'
 }
 
 function showToast(msg: string, anchor: HTMLElement) {
