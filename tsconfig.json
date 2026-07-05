@@ -9,10 +9,10 @@
     "incremental": true,
     "declaration": true,
     "lib": ["es2022", "dom"],
-    "rootDir": "./src",
+    "rootDir": ".",
+    "types": ["mocha", "chai", "node"],
     "outDir": "dist"
   },
-  "exclude": [
-    "dist"
-  ]
+  "include": ["src", "test"],
+  "exclude": ["dist"]
 }

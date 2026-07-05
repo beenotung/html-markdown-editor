@@ -4,7 +4,7 @@
   "main": "dist/index.js",
   "scripts": {
     "prepublishOnly": "rimraf dist/tsconfig.tsbuildinfo",
-    "test": "tsc --noEmit",
+    "test": "tsc --noEmit && mocha",
     "clean": "rimraf dist",
     "build": "esbuild --bundle src/app.ts --outfile=dist/bundle.js",
     "tsc": "tsc -p .",
@@ -30,8 +30,14 @@
   "type": "commonjs",
   "description": "",
   "devDependencies": {
+    "@types/chai": "^5.2.3",
+    "@types/jsdom": "^28.0.3",
+    "@types/mocha": "^10.0.10",
     "@types/node": "^24.13.2",
+    "chai": "^6.2.2",
     "esbuild": "^0.28.1",
+    "jsdom": "^29.1.1",
+    "mocha": "^11.7.6",
     "rimraf": "^6.1.3",
     "surge": "^0.30.0",
     "ts-node": "^10.9.2",
