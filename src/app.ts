@@ -524,7 +524,7 @@ function applyHTMLEditorEventListeners() {
         )!
         button.onclick = value
       }
-      table.insertAdjacentElement('afterend', dialog)
+      document.body.appendChild(dialog)
       dialog.showModal()
       event.preventDefault()
       return false
