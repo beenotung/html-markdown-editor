@@ -1,7 +1,7 @@
 import { html_to_markdown, markdown_to_html } from './convert'
 import { clearFormat } from './clear-format'
 import mermaid from 'mermaid'
-import katex from 'katex'
+import { renderLatex } from './latex'
 
 mermaid.initialize({
   startOnLoad: false,
@@ -66,52 +66,6 @@ async function renderMermaid(container: HTMLElement) {
       console.error('Mermaid render error:', error)
     }
   }
-}
-
-function renderLatex(container: HTMLElement) {
-  let html = container.innerHTML
-
-  // Unwrap pre/code blocks that contain $$ (block LaTeX)
-  // Replace <pre><code>...</code></pre> with just the content
-  html = html.replace(/<pre><code>([\s\S]*?)<\/code><\/pre>/g, (_, content) => {
-    if (content.includes('$$')) {
-      return content // Will be processed below
-    }
-    return `<pre><code>${content}</code></pre>`
-  })
-
-  // Handle block LaTeX ($$...$$) - now after unwrapping
-  html = html.replace(/\$\$([\s\S]*?)\$\$/g, (_, math) => {
-    math = math.trim()
-    if (!math) return ''
-    try {
-      let rendered = katex.renderToString(math, {
-        displayMode: true,
-        throwOnError: false,
-      })
-      return `<div class="katex-block" style="display:flex;justify-content:center;padding:0.5rem;">${rendered}</div>`
-    } catch (error) {
-      console.error('KaTeX render error:', error)
-      return _
-    }
-  })
-
-  // Handle inline LaTeX ($...$) - must not start with $$
-  html = html.replace(/(?<!\$)\$([^\$\n]+?)\$(?!\$)/g, (_, math) => {
-    if (!math) return _
-    try {
-      let rendered = katex.renderToString(math, {
-        displayMode: false,
-        throwOnError: false,
-      })
-      return `<span class="katex-inline">${rendered}</span>`
-    } catch (error) {
-      console.error('KaTeX render error:', error)
-      return _
-    }
-  })
-
-  container.innerHTML = html
 }
 
 function applyStyle() {

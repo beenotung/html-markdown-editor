@@ -7,6 +7,7 @@ global.document = window.document
 global.window = window as unknown as Window & typeof globalThis
 global.Node = window.Node
 global.Text = window.Text
+global.NodeFilter = window.NodeFilter
 global.HTMLElement = window.HTMLElement
 global.HTMLAnchorElement = window.HTMLAnchorElement
 global.HTMLInputElement = window.HTMLInputElement
