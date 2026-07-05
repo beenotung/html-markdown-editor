@@ -379,7 +379,7 @@ function applyHTMLEditorEventListeners() {
         } else {
           input.removeAttribute('checked')
         }
-        htmlEditor.oninput?.(new Event('input'))
+        updateFromHtmlEditor()
       }
     })
 
@@ -515,7 +515,7 @@ function applyHTMLEditorEventListeners() {
   })
 }
 
-markdownEditor.oninput = async event => {
+async function updateFromMarkdownEditor() {
   let html_text = markdown_to_html(markdownEditor.value)
   htmlEditor.innerHTML = html_text
   applyStyle()
@@ -527,8 +527,9 @@ markdownEditor.oninput = async event => {
     await renderMermaid(htmlEditor)
   }
 }
+markdownEditor.oninput = updateFromMarkdownEditor
 
-htmlEditor.oninput = event => {
+function updateFromHtmlEditor() {
   // remove extra <br> tags in list items
   htmlEditor.querySelectorAll('li br').forEach(br => {
     let li = br.parentElement!
@@ -602,9 +603,10 @@ htmlEditor.oninput = event => {
   applyHTMLEditorEventListeners()
 
   if (changed) {
-    markdownEditor.oninput?.(event)
+    updateFromMarkdownEditor()
   }
 }
+htmlEditor.oninput = updateFromHtmlEditor
 
 function hasMedia(node: Element) {
   let tagName = node.tagName.toLowerCase()
@@ -713,7 +715,7 @@ clearFormatBtn.onclick = event => {
 
   applyStyle()
 
-  htmlEditor.oninput?.(event)
+  updateFromHtmlEditor()
 }
 
 // empty div or p
@@ -775,8 +777,8 @@ copyMarkdownBtn.onclick = async event => {
   showToast('Copied Markdown', copyMarkdownBtn)
 }
 
-latexToggle.onchange = event => markdownEditor.oninput?.(event)
-mermaidToggle.onchange = event => markdownEditor.oninput?.(event)
+latexToggle.onchange = updateFromMarkdownEditor
+mermaidToggle.onchange = updateFromMarkdownEditor
 
 function calcSize() {
   let html = htmlEditor.innerHTML
