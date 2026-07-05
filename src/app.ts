@@ -213,15 +213,40 @@ function normalizeHtmlForMarkdown(container: HTMLElement) {
 function unescapeStyleElements(node: ChildNode) {
   if (node instanceof Text) {
     let text = node.textContent.trim()
-    if (!text.startsWith('<style>') || !text.endsWith('</style>')) return
-    let style = document.createElement('style')
-    style.textContent = text.slice('<style>'.length, -'</style>'.length)
-    debugger
-    node.replaceWith(style)
+
+    let start_1 = text.indexOf('<style>')
+    let start_2 = text.indexOf('<style ')
+    let start =
+      start_1 !== -1 && start_2 !== -1
+        ? Math.min(start_1, start_2)
+        : Math.max(start_1, start_2)
+    if (start === -1) return
+
+    let end = text.indexOf('</style>', start)
+    if (end === -1) return
+    end += '</style>'.length
+
+    let before = text.slice(0, start)
+    let content = text.slice(start, end)
+    let after = text.slice(end)
+
+    let styleContainer = document.createElement('div')
+    styleContainer.innerHTML = content
+
+    let afterContainer = document.createElement('div')
+    afterContainer.textContent = after
+    unescapeStyleElements(afterContainer)
+
+    node.replaceWith(
+      before,
+      styleContainer.firstElementChild!,
+      ...afterContainer.childNodes,
+    )
     return
   }
   if (!(node instanceof HTMLElement)) return
-  if (node.tagName.toLowerCase() == 'code') return
+  let tagName = node.tagName.toLowerCase()
+  if (tagName === 'pre' || tagName === 'code') return
   node.childNodes.forEach(child => {
     unescapeStyleElements(child)
   })
