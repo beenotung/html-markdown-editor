@@ -283,22 +283,40 @@ function renderLatex(container: HTMLElement) {
     }
   })
 
-  // Handle inline LaTeX ($...$) - must not start with $$
-  html = html.replace(/(?<!\$)\$([^\$\n]+?)\$(?!\$)/g, (_, math) => {
-    if (!math) return _
-    try {
-      let rendered = katex.renderToString(math, {
-        displayMode: false,
-        throwOnError: false,
-      })
-      return `<span class="katex-inline">${rendered}</span>`
-    } catch (error) {
-      console.error('KaTeX render error:', error)
-      return _
-    }
-  })
-
   container.innerHTML = html
+
+  // Handle inline LaTeX ($...$) per text node - skip currency like HK$528K
+  let inlineLatexPattern = /(?<![A-Za-z$])\$([^\$\n]+?)\$(?!\$|\d)/g
+  let walker = document.createTreeWalker(container, NodeFilter.SHOW_TEXT)
+  let textNodes: Text[] = []
+  for (;;) {
+    let node = walker.nextNode()
+    if (!node) break
+    let parent = node.parentElement
+    if (!parent) continue
+    if (parent.closest('pre, code, math, .katex-inline, .katex-block')) continue
+    textNodes.push(node as Text)
+  }
+  for (let textNode of textNodes) {
+    let text = textNode.textContent ?? ''
+    let replaced = text.replace(inlineLatexPattern, (full, math: string) => {
+      if (!math) return full
+      try {
+        let rendered = katex.renderToString(math, {
+          displayMode: false,
+          throwOnError: false,
+        })
+        return `<span class="katex-inline">${rendered}</span>`
+      } catch (error) {
+        console.error('KaTeX render error:', error)
+        return full
+      }
+    })
+    if (replaced === text) continue
+    let template = document.createElement('span')
+    template.innerHTML = replaced
+    textNode.replaceWith(...Array.from(template.childNodes))
+  }
 }
 
 function applyStyle() {
