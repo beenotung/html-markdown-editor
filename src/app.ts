@@ -218,7 +218,7 @@ function applyStyle() {
 }
 
 function isTableCellEmpty(cell: HTMLTableCellElement) {
-  return !cell.innerText.replace(/\u00a0/g, '').trim()
+  return !cell.innerText.trim()
 }
 
 function deleteEmptyTableRowsAndCols(table: HTMLTableElement) {
