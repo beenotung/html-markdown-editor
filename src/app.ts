@@ -537,10 +537,10 @@ async function updateFromMarkdownEditor() {
   let html_text = markdown_to_html(markdownEditor.value)
   htmlEditor.innerHTML = html_text
   applyStyle()
-  applyHTMLEditorEventListeners()
   if (latexToggle.checked) {
     renderLatex(htmlEditor)
   }
+  applyHTMLEditorEventListeners()
   if (mermaidToggle.checked) {
     await renderMermaid(htmlEditor)
   }
