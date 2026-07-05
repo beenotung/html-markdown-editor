@@ -132,6 +132,33 @@
             <dd><kbd>Ctrl</kbd> + <kbd>O</kbd></dd>
           </dl>
         </dialog>
+        <dialog id="tableDialog">
+          <div style="display: flex; justify-content: flex-end">
+            <button
+              data-action="mute"
+              title="Restore right-click in the table for devtool inspect, until right-click outside the table"
+            >
+              Mute
+            </button>
+            <button data-action="close">Close</button>
+          </div>
+
+          <h2>Table Operations</h2>
+          <button data-action="deleteTable">Delete Table</button>
+          <button data-action="deleteEmptyRowsAndCols">
+            Delete Empty Rows/Cols
+          </button>
+
+          <h2>Row Operations</h2>
+          <button data-action="deleteRow">Delete Row</button>
+          <button data-action="insertRowBefore">Insert Row Before</button>
+          <button data-action="insertRowAfter">Insert Row After</button>
+
+          <h2>Column Operations</h2>
+          <button data-action="deleteCol">Delete Column</button>
+          <button data-action="insertColBefore">Insert Column Before</button>
+          <button data-action="insertColAfter">Insert Column After</button>
+        </dialog>
         <div class="editor-container">
           <h2>
             HTML Content
