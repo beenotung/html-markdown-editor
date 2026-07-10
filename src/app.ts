@@ -30,7 +30,8 @@ function markdown_to_html(markdown_text: string) {
 
   let html_text = micromark(markdown_text, {
     allowDangerousHtml: true,
-    extensions: [gfm()],
+    // avoid treating `~$2 / (~$16)` as strikethrough; double tilde like `~~this~~` still works
+    extensions: [gfm({ singleTilde: false })],
     htmlExtensions: [gfmHtml()],
   })
 
