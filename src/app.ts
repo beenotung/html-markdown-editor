@@ -814,6 +814,21 @@ clearFormatBtn.onclick = event => {
     }
   })
 
+  // unwrap sole-child div inside td/th and nested div
+  let unwrapped = true
+  while (unwrapped) {
+    unwrapped = false
+    htmlEditor
+      .querySelectorAll('td > div, th > div, div > div')
+      .forEach(div => {
+        if (div.closest('pre,code')) return
+        let parent = div.parentElement!
+        if (parent.childNodes.length !== 1) return
+        div.outerHTML = div.innerHTML
+        unwrapped = true
+      })
+  }
+
   applyStyle()
 
   updateFromHtmlEditor()
