@@ -346,63 +346,96 @@ function renderLatex(container: HTMLElement) {
   }
 }
 
+function getPreferredStyles() {
+  let container = document.createElement('div')
+  container.innerHTML = /* html */ `
+    <table><tr><td>Hello</td></tr></table>
+    <pre><code>console.log('Hello')</code></pre>
+    <code>console.log('Hello')</code>
+  `
+  document.body.appendChild(container)
+  let table = container.querySelector('table')!
+  let td = container.querySelector('td')!
+  let pre = container.querySelector('pre')!
+  let code = container.querySelector('code:not(pre code)')!
+  let styles = {
+    table: pickStyle(table, {
+      borderCollapse: 'collapse',
+    }),
+    tableCell: pickStyle(td, {
+      borderWidth: '1px',
+      borderStyle: 'solid',
+      borderColor: 'black',
+      padding: '0.25rem 0.5rem',
+    }),
+    pre: pickStyle(pre, {
+      borderWidth: '1px',
+      borderStyle: 'solid',
+      borderColor: 'black',
+      padding: '0.5rem',
+    }),
+    code: pickStyle(code, {
+      backgroundColor: '#eee',
+      padding: '0.1rem 0.25rem',
+      borderRadius: '0.25rem',
+    }),
+  }
+  container.remove()
+  return styles
+}
+
+function pickStyle(
+  node: Element,
+  preferred: Partial<Record<StyleKey, string>>,
+): StylePair[] {
+  let styles = getComputedStyle(node)
+  return Object.entries(preferred).map(([key, value]) => ({
+    property: key as StyleKey,
+    default: styles[key as StyleKey],
+    preferred: value,
+  }))
+}
+
+let preferredStyles = getPreferredStyles()
+
 function applyStyle() {
   unescapeStyleElements(htmlEditor)
 
   htmlEditor.querySelectorAll('table').forEach(table => {
-    applyStyleIfNotSet(table, [
-      {
-        property: 'borderCollapse',
-        default: 'separate',
-        preferred: 'collapse',
-      },
-    ])
+    applyStyleIfNotSet(table, preferredStyles.table)
     table.querySelectorAll<HTMLTableCellElement>('th,td').forEach(cell => {
-      applyStyleIfNotSet(cell, [
-        { property: 'borderWidth', default: '0px', preferred: '1px' },
-        { property: 'borderStyle', default: 'none', preferred: 'solid' },
-        { property: 'borderColor', default: '', preferred: 'black' },
-        { property: 'padding', default: '1px', preferred: '0.25rem 0.5rem' },
-      ])
+      applyStyleIfNotSet(cell, preferredStyles.tableCell)
     })
   })
   htmlEditor.querySelectorAll('pre').forEach(pre => {
     pre.style.width ||= 'fit-content' // FIXME avoid overwrite existing width if specified
-    applyStyleIfNotSet(pre, [
-      { property: 'borderWidth', default: '0px', preferred: '1px' },
-      { property: 'borderStyle', default: 'none', preferred: 'solid' },
-      { property: 'borderColor', default: '', preferred: 'black' },
-      { property: 'padding', default: '0px', preferred: '0.5rem' },
-    ])
+    applyStyleIfNotSet(pre, preferredStyles.pre)
   })
   htmlEditor
     .querySelectorAll<HTMLElement>('code:not(pre code)')
     .forEach(code => {
-      applyStyleIfNotSet(code, [
-        { property: 'backgroundColor', default: '', preferred: '#eee' },
-        { property: 'padding', default: '0px', preferred: '0.1rem 0.25rem' },
-        { property: 'borderRadius', default: '0px', preferred: '0.25rem' },
-      ])
+      applyStyleIfNotSet(code, preferredStyles.code)
     })
 }
 
-function applyStyleIfNotSet(
-  element: HTMLElement,
-  pairs: {
-    property: keyof Pick<
-      CSSStyleDeclaration,
-      | 'borderCollapse'
-      | 'borderWidth'
-      | 'borderStyle'
-      | 'borderColor'
-      | 'padding'
-      | 'backgroundColor'
-      | 'borderRadius'
-    >
-    default: string
-    preferred: string
-  }[],
-) {
+type StyleKey = keyof Pick<
+  CSSStyleDeclaration,
+  | 'borderCollapse'
+  | 'borderWidth'
+  | 'borderStyle'
+  | 'borderColor'
+  | 'padding'
+  | 'backgroundColor'
+  | 'borderRadius'
+>
+
+type StylePair = {
+  property: StyleKey
+  default: string
+  preferred: string
+}
+
+function applyStyleIfNotSet(element: HTMLElement, pairs: StylePair[]) {
   let styles = getComputedStyle(element)
   for (let pair of pairs) {
     let value = styles[pair.property]
