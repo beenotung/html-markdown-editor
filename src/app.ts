@@ -735,6 +735,7 @@ clearFormatBtn.onclick = event => {
 
   // remove styling attributes
   htmlEditor.querySelectorAll('*').forEach(node => {
+    if (node.closest('pre, code, .katex, .katex-inline, .katex-block')) return
     let attrs = [
       'style',
       'class',
@@ -756,6 +757,7 @@ clearFormatBtn.onclick = event => {
     if (hasMedia(node)) {
       return
     }
+    if (node.closest('pre, code, .katex, .katex-inline, .katex-block')) return
     if (node.childNodes.length !== 1) return
     let text = node.childNodes[0]
     if (!(text instanceof Text)) return
@@ -767,12 +769,13 @@ clearFormatBtn.onclick = event => {
 
   // unwrap span elements
   htmlEditor.querySelectorAll<HTMLSpanElement>('span').forEach(span => {
-    if (span.closest('pre,code')) return
+    if (span.closest('pre,code,.katex,.katex-inline,.katex-block')) return
     span.outerHTML = span.innerHTML
   })
 
   // unwrap styling elements
   htmlEditor.querySelectorAll('b,i,u,s').forEach(node => {
+    if (node.closest('pre,code,.katex,.katex-inline,.katex-block')) return
     node.outerHTML = node.innerHTML
   })
 
@@ -836,7 +839,7 @@ clearFormatBtn.onclick = event => {
     htmlEditor
       .querySelectorAll('td > div, th > div, div > div')
       .forEach(div => {
-        if (div.closest('pre,code')) return
+        if (div.closest('pre,code,.katex,.katex-inline,.katex-block')) return
         let parent = div.parentElement!
         if (parent.childNodes.length !== 1) return
         div.outerHTML = div.innerHTML
