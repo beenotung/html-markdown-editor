@@ -18,6 +18,7 @@ let tableDialog = querySelector<HTMLDialogElement>('#tableDialog')
 let clearFormatBtn = querySelector<HTMLButtonElement>('#clearFormatBtn')
 let copyRichBtn = querySelector<HTMLButtonElement>('#copyRichBtn')
 let copyHtmlBtn = querySelector<HTMLButtonElement>('#copyHtmlBtn')
+let printBtn = querySelector<HTMLButtonElement>('#printBtn')
 let copyMarkdownBtn = querySelector<HTMLButtonElement>('#copyMarkdownBtn')
 let latexToggle = querySelector<HTMLInputElement>('#latexToggle')
 let mermaidToggle = querySelector<HTMLInputElement>('#mermaidToggle')
@@ -899,6 +900,48 @@ copyHtmlBtn.onclick = async event => {
     copyHtmlBtn.textContent = 'H'
   }, 2000)
   showToast('Copied Raw HTML', copyHtmlBtn)
+}
+
+function textToHtml(text: string) {
+  let div = document.createElement('div')
+  div.textContent = text
+  return div.innerHTML
+}
+
+printBtn.onclick = () => {
+  let win = window.open('', '_blank')
+  if (!win) {
+    showToast('Popup blocked', printBtn)
+    return
+  }
+  let title = textToHtml(
+    htmlEditor.querySelector<HTMLElement>('h1, h2')?.innerText?.trim() ||
+      'Document',
+  )
+  let katexCss = htmlEditor.querySelector('.katex, .katex-inline, .katex-block')
+    ? `<link rel="stylesheet" href="${location.origin}/lib/katex/katex.min.css" />`
+    : ''
+  win.document.write(/* html */ `<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8" />
+<title>${title}</title>
+${katexCss}
+<style>
+  body {
+    font-family: Arial, Helvetica, sans-serif;
+    margin: 1rem;
+  }
+</style>
+</head>
+<body>${htmlEditor.innerHTML}</body>
+</html>`)
+  win.document.close()
+  win.addEventListener('afterprint', () => win.close())
+  win.addEventListener('load', () => {
+    win.focus()
+    win.print()
+  })
 }
 
 copyMarkdownBtn.onclick = async event => {
