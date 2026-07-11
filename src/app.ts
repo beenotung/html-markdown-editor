@@ -362,7 +362,7 @@ function applyStyle() {
         { property: 'borderWidth', default: '0px', preferred: '1px' },
         { property: 'borderStyle', default: 'none', preferred: 'solid' },
         { property: 'borderColor', default: '', preferred: 'black' },
-        { property: 'padding', default: '0px', preferred: '0.25rem 0.5rem' },
+        { property: 'padding', default: '1px', preferred: '0.25rem 0.5rem' },
       ])
     })
   })
