@@ -728,9 +728,24 @@ function hasMedia(node: Element) {
 }
 
 clearFormatBtn.onclick = event => {
+  // remove table colgroup
+  htmlEditor.querySelectorAll('table colgroup').forEach(colgroup => {
+    colgroup.remove()
+  })
+
   // remove styling attributes
   htmlEditor.querySelectorAll('*').forEach(node => {
-    let attrs = ['style', 'class', 'id', 'dir', 'aria-level']
+    let attrs = [
+      'style',
+      'class',
+      'id',
+      'dir',
+      'aria-level',
+      // table style attributes
+      'cellspacing',
+      'cellpadding',
+      'border',
+    ]
     for (let attr of attrs) {
       node.removeAttribute(attr)
     }
