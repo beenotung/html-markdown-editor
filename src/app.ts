@@ -605,6 +605,42 @@ function showDialog(event: MouseEvent) {
       }
       actions.close()
     },
+    transpose() {
+      // row -> col -> cell
+      let source: HTMLTableCellElement[][] = Array.from(table.rows, tr =>
+        Array.from(tr.cells),
+      )
+
+      // col -> row -> cell
+      let dest: HTMLTableCellElement[][] = []
+      for (let row = 0; row < source.length; row++) {
+        for (let col = 0; col < source[row].length; col++) {
+          let cell = source[row][col]
+          dest[col] ||= []
+          dest[col][row] = cell
+          cell.remove()
+        }
+      }
+
+      // align new number of rows
+      while (table.rows.length < dest.length) {
+        table.appendChild(document.createElement('tr'))
+      }
+      while (table.rows.length > dest.length) {
+        table.rows[table.rows.length - 1].remove()
+      }
+
+      // append cells to new rows
+      for (let r = 0; r < dest.length; r++) {
+        let row = table.rows[r]
+        for (let c = 0; c < dest[r].length; c++) {
+          let cell = dest[r][c]
+          row.appendChild(cell)
+        }
+      }
+
+      actions.close()
+    },
   }
   for (let [key, value] of Object.entries(actions)) {
     let button = tableDialog.querySelector<HTMLButtonElement>(
