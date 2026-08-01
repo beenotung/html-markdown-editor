@@ -1,6 +1,6 @@
 {
   "name": "html-markdown-editor",
-  "version": "0.4.0",
+  "version": "0.5.0",
   "main": "dist/index.js",
   "scripts": {
     "prepublishOnly": "rimraf dist/tsconfig.tsbuildinfo",
