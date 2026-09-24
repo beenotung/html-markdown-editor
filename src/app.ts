@@ -182,7 +182,35 @@ function hasSibling(a: HTMLAnchorElement) {
   return parent.innerHTML.replace(a.outerHTML, '').trim().length > 0
 }
 
+function normalizeTableCells(container: HTMLElement) {
+  let changed = true
+  while (changed) {
+    changed = false
+    container.querySelectorAll('th,td').forEach(cell => {
+      // remove tailing empty div/p - it serves no line break purpose at the end
+      for (;;) {
+        let child = cell.lastElementChild
+        if (!child || !isEmptyBlock(child)) break
+        child.remove()
+        changed = true
+      }
+
+      // unwrap sole-child div/p in the cell
+      if (cell.childNodes.length !== 1) return
+      let child = cell.firstElementChild
+      if (!child) return
+      let tagName = child.tagName.toLowerCase()
+      if (tagName !== 'p' && tagName !== 'div') return
+      if (child.closest('pre,code,.katex,.katex-inline,.katex-block')) return
+      child.outerHTML = child.innerHTML
+      changed = true
+    })
+  }
+}
+
 function normalizeHtmlForMarkdown(container: HTMLElement) {
+  normalizeTableCells(container)
+
   // trim tailing whitespaces in main text
   if (container.childNodes.length === 1) {
     let child = container.firstChild
@@ -656,6 +684,7 @@ function showDialog(event: MouseEvent) {
 async function updateFromMarkdownEditor() {
   let html_text = markdown_to_html(markdownEditor.value)
   htmlEditor.innerHTML = html_text
+  normalizeTableCells(htmlEditor)
   applyStyle()
   if (latexToggle.checked) {
     renderLatex(htmlEditor)
