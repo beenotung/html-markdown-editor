@@ -9,6 +9,10 @@ import katex from 'katex'
 mermaid.initialize({
   startOnLoad: false,
   theme: 'default',
+  layout: 'dagre',
+  look: 'classic',
+  flowchart: { minNodeWidth: 0, wrappingWidth: 200 },
+  state: { minNodeWidth: 0 }
 })
 
 let statusNode = querySelector('#status')
