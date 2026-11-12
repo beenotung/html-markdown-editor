@@ -3,6 +3,8 @@ import { gfm, gfmHtml } from 'micromark-extension-gfm'
 import { html } from 'very-small-parser'
 import { toMdast } from 'very-small-parser/lib/html/toMdast'
 import { toText as toMarkdown } from 'very-small-parser/lib/markdown/block/toText'
+import type { IList } from 'very-small-parser/lib/markdown/block/types'
+import type { IToken } from 'very-small-parser/lib/types'
 
 type Mermaid = (typeof import('mermaid'))['default']
 type Katex = (typeof import('katex'))['default']
@@ -174,6 +176,12 @@ function html_to_markdown(html_text: string) {
   let md_ast = toMdast(html_ast)
   let markdown = toMarkdown(md_ast)
 
+  // very-small-parser reuses the list start number for every item,
+  // so renumber ordered list items sequentially
+  let orderedListNumbers: number[] = []
+  collectOrderedListNumbers(md_ast, orderedListNumbers)
+  markdown = renumberOrderedLists(markdown, orderedListNumbers)
+
   // restore tables
   for (let { placeholder, rows } of tables) {
     if (rows.length == 0) continue
@@ -200,6 +208,59 @@ function hasSibling(a: HTMLAnchorElement) {
   let parent = a.parentElement
   if (!parent) return false
   return parent.innerHTML.replace(a.outerHTML, '').trim().length > 0
+}
+
+function isListToken(node: IToken): node is IList {
+  return node.type === 'list'
+}
+
+function collectOrderedListNumbers(
+  node: IToken | IToken[] | undefined,
+  numbers: number[],
+) {
+  if (Array.isArray(node)) {
+    for (let child of node) {
+      collectOrderedListNumbers(child, numbers)
+    }
+    return
+  }
+  if (!node) return
+
+  if (isListToken(node)) {
+    let start = node.start || 1
+    node.children.forEach((item, index) => {
+      if (node.ordered) {
+        numbers.push(start + index)
+      }
+      collectOrderedListNumbers(item.children, numbers)
+    })
+    return
+  }
+
+  collectOrderedListNumbers(node.children, numbers)
+}
+
+function renumberOrderedLists(markdown: string, numbers: number[]) {
+  if (numbers.length === 0) return markdown
+
+  let index = 0
+  let inCodeBlock = false
+  let lines = markdown.split('\n')
+  for (let i = 0; i < lines.length; i++) {
+    let line = lines[i]
+    if (/^\s*(```|~~~)/.test(line)) {
+      inCodeBlock = !inCodeBlock
+      continue
+    }
+    if (inCodeBlock) continue
+
+    // allow blockquote prefix (e.g. "> 1. item")
+    let match = line.match(/^([\s>]*?)(\d+)\. /)
+    if (!match) continue
+    if (index >= numbers.length) break
+    lines[i] = `${match[1]}${numbers[index++]}. ${line.slice(match[0].length)}`
+  }
+  return lines.join('\n')
 }
 
 function normalizeTableCells(container: HTMLElement) {
