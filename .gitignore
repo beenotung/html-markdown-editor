@@ -9,3 +9,7 @@ dist/
 *.tgz
 .DS_Store
 public/
+
+# working notes (kept local, not part of the project)
+notepad.md
+journal.md
