@@ -248,11 +248,23 @@ function normalizeHtmlForMarkdown(container: HTMLElement) {
     }
   }
 
-  // merge consecutive divs with <br>
-  for (let index = container.children.length - 1; index > 0; index--) {
-    let child = container.children[index]
+  // merge consecutive divs with <br>, including nested divs
+  mergeConsecutiveDivs(container)
+}
+
+function mergeConsecutiveDivs(parent: Element) {
+  // process nested divs first
+  for (let child of Array.from(parent.children)) {
+    if (child.tagName.toLowerCase() === 'div') {
+      mergeConsecutiveDivs(child)
+    }
+  }
+
+  // merge consecutive div siblings with <br>
+  for (let index = parent.children.length - 1; index > 0; index--) {
+    let child = parent.children[index]
     if (child.tagName.toLowerCase() != 'div') continue
-    let prev = container.children[index - 1]
+    let prev = parent.children[index - 1]
     if (prev.tagName.toLowerCase() != 'div') continue
     prev.innerHTML += '<br>' + child.innerHTML
     child.remove()
