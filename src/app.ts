@@ -3,19 +3,33 @@ import { gfm, gfmHtml } from 'micromark-extension-gfm'
 import { html } from 'very-small-parser'
 import { toMdast } from 'very-small-parser/lib/html/toMdast'
 import { toText as toMarkdown } from 'very-small-parser/lib/markdown/block/toText'
-import mermaid from 'mermaid'
-import katex from 'katex'
 
-mermaid.initialize({
-  startOnLoad: false,
-  theme: 'default',
-  look: 'classic',
-  flowchart: { layout: 'dagre', minNodeWidth: 0, wrappingWidth: 200 },
-  state: { layout: 'dagre', minNodeWidth: 0 },
-  class: { layout: 'dagre' },
-  er: { layout: 'dagre' },
-  requirement: { layout: 'dagre' }
-})
+type Mermaid = (typeof import('mermaid'))['default']
+type Katex = (typeof import('katex'))['default']
+
+let toLoadSymbol = Symbol('to-load')
+
+// mermaid and katex are ~97% of the bundle and only needed when the document
+// actually has a mermaid fence or `$...$` math, so they are loaded on demand.
+let mermaid: Mermaid | null = null
+async function loadMermaid() {
+  mermaid = await import('mermaid').then(mod => mod.default)
+  mermaid!.initialize({
+    startOnLoad: false,
+    theme: 'default',
+    look: 'classic',
+    flowchart: { layout: 'dagre', minNodeWidth: 0, wrappingWidth: 200 },
+    state: { layout: 'dagre', minNodeWidth: 0 },
+    class: { layout: 'dagre' },
+    er: { layout: 'dagre' },
+    requirement: { layout: 'dagre' },
+  })
+}
+
+let katex: Katex | null = null
+async function loadKatex() {
+  katex = await import('katex').then(mod => mod.default)
+}
 
 let statusNode = querySelector('#status')
 let markdownEditor = querySelector<HTMLTextAreaElement>('#markdownEditor')
@@ -301,6 +315,9 @@ async function renderMermaid(container: HTMLElement) {
     if (!pre) continue
     let content = code.textContent || ''
     if (!content.trim()) continue
+    if (!mermaid) {
+      throw toLoadSymbol
+    }
     let id = `mermaid-${++counter}`
     try {
       let { svg } = await mermaid.render(id, content)
@@ -317,7 +334,7 @@ async function renderMermaid(container: HTMLElement) {
   }
 }
 
-function renderLatex(container: HTMLElement) {
+async function renderLatex(container: HTMLElement) {
   let html = container.innerHTML
 
   // Unwrap pre/code blocks that contain $$ (block LaTeX)
@@ -333,6 +350,9 @@ function renderLatex(container: HTMLElement) {
   html = html.replace(/\$\$([\s\S]*?)\$\$/g, (_, math) => {
     math = math.trim()
     if (!math) return ''
+    if (!katex) {
+      throw toLoadSymbol
+    }
     try {
       let rendered = katex.renderToString(math, {
         displayMode: true,
@@ -363,6 +383,9 @@ function renderLatex(container: HTMLElement) {
     let text = textNode.textContent ?? ''
     let replaced = text.replace(inlineLatexPattern, (full, math: string) => {
       if (!math) return full
+      if (!katex) {
+        throw toLoadSymbol
+      }
       try {
         let rendered = katex.renderToString(math, {
           displayMode: false,
@@ -687,17 +710,32 @@ function showDialog(event: MouseEvent) {
   return false
 }
 
+async function renderWithFallback(
+  render: (container: HTMLElement) => Promise<void>,
+  fallback: () => Promise<void>,
+) {
+  try {
+    await render(htmlEditor)
+  } catch (error) {
+    if (error !== toLoadSymbol) {
+      throw error
+    }
+    await fallback()
+    await render(htmlEditor)
+  }
+}
+
 async function updateFromMarkdownEditor() {
   let html_text = markdown_to_html(markdownEditor.value)
   htmlEditor.innerHTML = html_text
   normalizeTableCells(htmlEditor)
   applyStyle()
   if (latexToggle.checked) {
-    renderLatex(htmlEditor)
+    await renderWithFallback(renderLatex, loadKatex)
   }
   applyHTMLEditorEventListeners()
   if (mermaidToggle.checked) {
-    await renderMermaid(htmlEditor)
+    await renderWithFallback(renderMermaid, loadMermaid)
   }
 }
 markdownEditor.oninput = updateFromMarkdownEditor
